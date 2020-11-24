@@ -1,0 +1,65 @@
+using System;
+using System.IO;
+
+namespace test
+{
+    /**
+     * This class is thread safe.
+     */
+    public class Parser
+    {
+        private File file;
+        public void setFile(File f)
+        {
+            lock (f)
+                file = f;
+        }
+        public File getFile()
+        {
+            lock (file)
+                return file;
+        }
+
+        public String getContent()
+        {
+            var i = file.OpenText();
+            String output = "";
+            int data;
+            while ((data = i.Read()) > 0)
+            {
+                output += (char)data;
+            }
+            return output;
+        }
+
+        public String getContentWithoutUnicode()
+        {
+            StreamReader i = file.OpenText();
+            String output = "";
+            int data;
+            while ((data = i.Read()) > 0)
+            {
+                if (data < 0x80)
+                {
+                    output += (char)data;
+                }
+            }
+            return output;
+        }
+
+        public void saveContent(String content)
+        {
+            StreamWriter o = file.CreateText();
+            try
+            {
+                int i = 0;
+                while (i < content.Length)
+                    o.Write(content[++i]);
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+    }
+}
